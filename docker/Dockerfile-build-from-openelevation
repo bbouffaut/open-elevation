@@ -1,0 +1,7 @@
+FROM openelevation/open-elevation:latest
+
+WORKDIR /code
+
+CMD python server.py
+
+EXPOSE 8080
