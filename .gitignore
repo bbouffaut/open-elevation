@@ -2,4 +2,11 @@ __pycache__/
 *.pyc
 data/
 .idea/
+<<<<<<< HEAD
 certs/
+=======
+
+docker/build_and_deploy.sh
+docker/build_arm_docker.sh
+docker/docker-compose.yml
+>>>>>>> 6eae59f (update Dockerfile with latest version)
