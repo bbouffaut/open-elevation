@@ -1,4 +1,4 @@
-FROM osgeo/gdal:ubuntu-small-latest-arm64
+FROM arm32v7/ubuntu:22.04
 ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
