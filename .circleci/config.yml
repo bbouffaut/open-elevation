@@ -66,7 +66,7 @@ jobs:
       - run:
           name: Deploy on Portainer
           command: |
-              curl -X POST https://portainer.bouffaut.com/api/webhooks/081e72eeXXXXXXXXXX?tag=$CIRCLE_TAG
+              curl -X POST https://portainer.bouffaut.com/api/webhooks/7c88efdb-4ae9-4f3a-8111-b29978b02771?tag=$CIRCLE_TAG
   
   notify_on_slack:
     docker:

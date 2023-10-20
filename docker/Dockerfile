@@ -4,7 +4,7 @@ ENV TZ=Europe/Paris
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
 RUN apt-get update
-RUN apt-get install -y libspatialindex-dev unar bc python3-pip wget libgdal-dev
+RUN apt-get install -y libspatialindex-dev unar bc python3-pip wget libgdal-dev python3-gdal python3
 
 ADD ./requirements.txt .
 RUN pip install -r requirements.txt
