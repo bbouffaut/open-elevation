@@ -1,0 +1,19 @@
+version: '2'
+services:
+    open-elevation-api:
+        container_name: open-elevation-api
+        hostname: open-elevation-api.docker
+        network_mode: bridge
+        image: registry.gitlab.com/skails/open-elevation-api:1.0-arm
+        restart: always
+        expose:
+          - 8080/tcp
+        ports:
+            - '8989:8080'
+        labels:
+            - "com.centurylinklabs.watchtower.enable=false"
+        volumes:
+          - "/mnt/nfs/srv/z1-db_data/open-elevation-data:/code/data"
+          - "./certs:/code/certs"
+          - "/etc/timezone:/etc/timezone:ro"
+          - "/etc/localtime:/etc/localtime:ro"

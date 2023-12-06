@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    com.centurylinklabs.watchtower.enable: "false"
+  labels:
+    io.kompose.service: open-elevation-api
+  name: open-elevation-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: open-elevation-api
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        com.centurylinklabs.watchtower.enable: "false"
+      labels:
+        io.kompose.network/open-elevation-api-default: "true"
+        io.kompose.service: open-elevation-api
+    spec:
+      imagePullSecrets:
+        - name: gitlab-registry
+      containers:
+        - image: registry.gitlab.com/skails/open-elevation-api:1.0-arm
+          name: open-elevation-api
+          ports:
+            - containerPort: 8080
+              hostPort: 8989
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /code/data
+              name: open-elevation-api-claim0
+            - mountPath: /code/certs
+              name: open-elevation-api-claim1
+      hostname: open-elevation-api
+      restartPolicy: Always
+      volumes:
+        - name: open-elevation-api-claim0
+          persistentVolumeClaim:
+            claimName: open-elevation-api-claim0
+        - name: open-elevation-api-claim1
+          persistentVolumeClaim:
+            claimName: open-elevation-api-claim1

@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: open-elevation-api-pv-volume0
+  labels:
+    type: nfs
+spec:
+  storageClassName: nfs
+  capacity:
+    storage: 20Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadOnlyMany
+  mountOptions:
+    - hard
+    - nfsvers=4.1
+  nfs:
+    path: "/volume1/NetBackup/srv/z1-db_data/open-elevation-data"
+    server: 10.10.0.249
+    readOnly: true
+  claimRef:
+    name: open-elevation-api-claim0
+    namespace: default
+
