@@ -4,7 +4,7 @@ services:
         container_name: open-elevation-api
         hostname: open-elevation-api.docker
         network_mode: bridge
-        image: registry.gitlab.com/skails/open-elevation-api:1.0-arm
+        image: registry.gitlab.com/skails/open-elevation-api:1.2-arm64
         restart: always
         expose:
           - 8080/tcp

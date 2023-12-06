@@ -1,0 +1,128 @@
+version: 2.1
+orbs:
+  slack: circleci/slack@4.12.1
+  node: circleci/node@5.1.0
+
+
+commands:
+  setup:
+    steps:
+      - checkout
+      - run:
+          name: Setup buildx and qemu
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y qemu-user-static
+            sudo apt-get install -y binfmt-support
+      - run:
+          name: Check versions
+          command: |
+            qemu-aarch64-static --version
+            update-binfmts --version 
+      - run:
+          name: Create builder
+          command: |
+            export DOCKER_CLI_EXPERIMENTAL=enabled
+            docker buildx create --name arm-builder
+            docker buildx use arm-builder
+            docker buildx inspect --bootstrap
+
+  login_to_gitlab_registry:
+    steps:
+      - run:
+          name: Login to Gitlab Registry
+          command: |
+            docker login registry.gitlab.com -u bbouffaut -p $gitlab_registry_token
+
+jobs:
+
+  build_and_publish_arm_image:
+    machine:
+      image: 'ubuntu-2004:202010-01'
+    steps:
+      - setup
+      - login_to_gitlab_registry
+      - run:
+          name: Build application Docker image
+          command: |
+            DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/arm/v7 --push -t registry.gitlab.com/skails/open-elevation-api:$CIRCLE_TAG -f ./docker/Dockerfile .
+  build_and_publish_arm64_image:
+    machine:
+      image: 'ubuntu-2004:202010-01'
+    steps:
+      - setup
+      - login_to_gitlab_registry
+      - run:
+          name: Build application Docker image
+          command: |
+            DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/arm64/v8 --push -t registry.gitlab.com/skails/open-elevation-api:$CIRCLE_TAG -f ./docker/Dockerfile .    
+  deploy_on_portainer:
+    docker:
+      - image: 'cimg/base:stable'
+        auth:
+          username: bbouffaut
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var 
+    steps:
+      - run:
+          name: Deploy on Portainer
+          command: |
+              curl -X POST https://portainer.bouffaut.com/api/webhooks/7c88efdb-4ae9-4f3a-8111-b29978b02771?tag=$CIRCLE_TAG
+  
+  notify_on_slack:
+    docker:
+      - image: 'cimg/base:stable'
+        auth:
+          username: bbouffaut
+          password: $DOCKERHUB_PASSWORD  # context / project UI env-var 
+    steps:
+        - run:
+            name: "echo environment variables from contexts"
+            command: echo $SLACK_ACCESS_TOKEN
+        - slack/notify:
+            event: fail
+            template: basic_fail_1
+        # When there is a successful deployment, send a notification with a different template.
+        - slack/notify:
+            event: pass
+            template: success_tagged_deploy_1
+
+  
+workflows:
+  build_and_deploy_arm_container_image:
+    jobs:
+      - build_and_publish_arm_image:
+          context:
+            - org-global
+            - gitlab_registry_context
+            - slack_secrets_context
+          filters:
+            branches:
+              ignore: /.*/
+            tags: 
+              only: /^[0-9]+(\.[0-9]+)(-[A-Za-z0-9]*)?-arm$/
+      - build_and_publish_arm64_image:
+          context:
+            - org-global
+            - gitlab_registry_context
+            - slack_secrets_context
+          filters: &filters-release-arm64
+            branches:
+              ignore: /.*/
+            tags: 
+              only: /^[0-9]+(\.[0-9]+)(-[A-Za-z0-9]*)?-arm64$/
+      - deploy_on_portainer:
+          requires:
+            - build_and_publish_arm64_image
+          context:
+            - org-global
+            - slack_secrets_context
+          filters:
+            <<: *filters-release-arm64
+      - notify_on_slack:
+          requires:
+            - deploy_on_portainer
+          context:
+            - org-global
+            - slack_secrets_context
+          filters:
+            <<: *filters-release-arm64
