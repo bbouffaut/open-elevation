@@ -8,11 +8,9 @@ metadata:
   name: open-elevation-api
 spec:
   ports:
-    - name: "8989"
-      port: 8989
+    - name: "80"
+      port: 80
       targetPort: 8080
   selector:
     io.kompose.service: open-elevation-api
   type: ClusterIP
-  externalIPs:
-    - 10.10.0.240
